@@ -1,0 +1,37 @@
+{
+  "name": "ManPharma - Form Submission to Google Sheets",
+  "description": "Captures form submissions from website and saves to Google Sheets",
+  "nodes": [
+    {
+      "name": "Webhook - Form Submit",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "path": "form-submit",
+        "responseMode": "onReceived",
+        "responseData": "allEntries"
+      }
+    },
+    {
+      "name": "Google Sheets - Save Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [460, 300],
+      "parameters": {
+        "operation": "append",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Leads",
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook - Form Submit": {
+      "main": [[{ "node": "Google Sheets - Save Lead", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false
+}

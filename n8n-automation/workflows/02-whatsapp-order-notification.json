@@ -1,0 +1,40 @@
+{
+  "name": "ManPharma - WhatsApp Order Notification",
+  "description": "Sends WhatsApp message when a new order/enquiry comes in",
+  "nodes": [
+    {
+      "name": "Webhook - New Order",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "path": "new-order",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "name": "WhatsApp - Notify Admin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/YOUR_SID/Messages.json",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "To", "value": "whatsapp:+91XXXXXXXXXX" },
+            { "name": "From", "value": "whatsapp:+14155238886" },
+            { "name": "Body", "value": "=New Order: {{ $json.name }} - {{ $json.product }}" }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook - New Order": {
+      "main": [[{ "node": "WhatsApp - Notify Admin", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false
+}

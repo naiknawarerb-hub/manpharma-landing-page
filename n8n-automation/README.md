@@ -1,51 +1,81 @@
-# n8n Automation Setup — ManPharma
+# ManPharma — n8n Automation
 
-## Requirements
-- Docker Desktop (Windows/Mac) ya Docker Engine (Linux)
-- Git
+Self-hosted workflow automation for ManPharma. No cloud, no API cost, fully local.
 
-## Install Docker
+## Project Structure
+
+```
+n8n-automation/
+├── docker-compose.yml       # Main service definition
+├── .env.example             # Environment variable template
+├── .env                     # Your config (gitignored)
+├── .gitignore
+├── scripts/
+│   ├── setup.sh             # First-time setup
+│   ├── start.sh             # Start n8n
+│   ├── stop.sh              # Stop n8n
+│   └── backup.sh            # Backup all data
+├── workflows/
+│   ├── 01-form-to-google-sheets.json
+│   ├── 02-whatsapp-order-notification.json
+│   └── 03-daily-email-report.json
+└── backups/                 # Auto-created by backup.sh
+```
+
+## Quick Start
+
+**Step 1 — Install Docker Desktop**
 - Windows/Mac: https://www.docker.com/products/docker-desktop/
-- Ubuntu Linux: `sudo apt install docker.io docker-compose`
+- Ubuntu: `sudo apt install docker.io docker-compose`
 
-## Start karo (ek command)
-
+**Step 2 — First time setup**
 ```bash
 cd n8n-automation
-docker compose up -d
+chmod +x scripts/*.sh
+./scripts/setup.sh
 ```
 
-Browser mein kholo: **http://localhost:5678**
-
-## Stop karo
-
+**Step 3 — Start**
 ```bash
-docker compose down
+./scripts/start.sh
 ```
 
-## Data kahan save hoga?
-- Sare workflows aur credentials Docker volume `n8n_data` mein save honge
-- Local `workflows/` folder mein backup rakh sakte ho
+**Step 4 — Open in browser**
+```
+http://localhost:5678
+```
 
-## Useful Integrations Available in n8n
-- Gmail / Email
-- WhatsApp (360dialog, Twilio)
-- Telegram Bot
-- Google Sheets
-- Notion
-- Slack
-- GitHub
-- MySQL / PostgreSQL
-- HTTP Requests / Webhooks
-- OpenAI / Local AI (Ollama)
-- Instagram, Facebook
-- Shopify, WooCommerce
-- PDF, Excel processing
-- Cron jobs / Scheduled tasks
+## Daily Commands
 
-## ManPharma ke liye Useful Automation Ideas
-- Naya course/product launch hone par auto email
-- Form submissions ka Google Sheets mein record
-- WhatsApp pe order notifications
-- Social media pe auto post schedule
-- Student enrollment confirmation emails
+| Task | Command |
+|---|---|
+| Start n8n | `./scripts/start.sh` |
+| Stop n8n | `./scripts/stop.sh` |
+| Backup data | `./scripts/backup.sh` |
+| View logs | `docker logs manpharma-n8n -f` |
+| Restart | `docker restart manpharma-n8n` |
+
+## Pre-built Workflows (in `workflows/`)
+
+| File | Purpose |
+|---|---|
+| `01-form-to-google-sheets.json` | Save website form leads to Google Sheets |
+| `02-whatsapp-order-notification.json` | WhatsApp alert on new orders |
+| `03-daily-email-report.json` | Daily 9AM summary email |
+
+### How to import a workflow
+1. Open n8n → Workflows → New
+2. Click menu (⋯) → Import from file
+3. Select `.json` from `workflows/` folder
+
+## Available Integrations (400+)
+Gmail, WhatsApp, Telegram, Slack, Google Sheets, Notion, GitHub, MySQL, HTTP Webhooks, Instagram, Shopify, PDF processing, Scheduled tasks, and more.
+
+## Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `N8N_PORT` | Port to run on | `5678` |
+| `N8N_ENCRYPTION_KEY` | Secret key for credentials | auto-generated |
+| `GENERIC_TIMEZONE` | Your timezone | `Asia/Kolkata` |
+| `N8N_DIAGNOSTICS_ENABLED` | Send usage data | `false` |

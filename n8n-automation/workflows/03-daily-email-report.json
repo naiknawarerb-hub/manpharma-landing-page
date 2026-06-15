@@ -1,0 +1,36 @@
+{
+  "name": "ManPharma - Daily Summary Email",
+  "description": "Sends daily business summary email every morning at 9 AM IST",
+  "nodes": [
+    {
+      "name": "Schedule - 9AM Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9 * * *" }]
+        }
+      }
+    },
+    {
+      "name": "Send Email Report",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [460, 300],
+      "parameters": {
+        "fromEmail": "noreply@manpharma.com",
+        "toEmail": "admin@manpharma.com",
+        "subject": "ManPharma Daily Report - {{ $now.format('DD/MM/YYYY') }}",
+        "emailType": "html",
+        "message": "<h2>Good Morning!</h2><p>Here is your daily summary for ManPharma.</p>"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - 9AM Daily": {
+      "main": [[{ "node": "Send Email Report", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false
+}
