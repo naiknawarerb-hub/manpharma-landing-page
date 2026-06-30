@@ -1,0 +1,5 @@
+lead_id,name,channel,contact,subject_interest,source,status,stage,date_added,last_message_at,next_action_at,notes
+LEAD-0001,Rahul,telegram,123456789,Pharmaceutics,landing_page,New,0,2026-06-30,2026-06-30,2026-07-01,Sample diya
+LEAD-0002,Sneha,whatsapp,919876543210,Combo,instagram,Nurturing,2,2026-06-28,2026-06-29,2026-07-01,Price pucha tha
+LEAD-0003,Amit,email,amit@example.com,Pharma Chemistry,landing_page,Hot,3,2026-06-27,2026-06-30,2026-07-02,Checkout link bheja
+LEAD-0004,Priya,whatsapp,919812345678,Pharmaceutics,telegram,Customer,5,2026-06-20,2026-06-25,,Buy kiya - combo upsell bheja

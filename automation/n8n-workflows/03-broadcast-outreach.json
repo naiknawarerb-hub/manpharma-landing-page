@@ -1,0 +1,122 @@
+{
+  "name": "ManPharma 03 - Broadcast Outreach",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "weeks", "triggerAtDay": [1, 3, 5], "triggerAtHour": 18 }] }
+      },
+      "id": "node-schedule",
+      "name": "Mon/Wed/Fri 18:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "documentId": { "__rl": true, "value": "YOUR_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Content", "mode": "name" },
+        "options": {}
+      },
+      "id": "node-read-content",
+      "name": "Read Content Calendar",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pick the first content row whose status is still 'pending'.\nfor (const item of $input.all()) {\n  if (String(item.json.status || '').toLowerCase() === 'pending') {\n    return [{ json: { ...item.json, status: 'sent', sent_at: new Date().toISOString().slice(0, 10) } }];\n  }\n}\nreturn [];"
+      },
+      "id": "node-pick",
+      "name": "Pick Next Post",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-120, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHANNEL_ID",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "id": "node-telegram-channel",
+      "name": "Post to Telegram Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [160, -160],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "fromEmail": "ManPharma Tutorials <YOUR_EMAIL>",
+        "toEmail": "YOUR_SUBSCRIBER_LIST_OR_BCC",
+        "subject": "ManPharma 📚 {{ $json.type }}",
+        "emailFormat": "text",
+        "text": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "node-email-blast",
+      "name": "Email Blast",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [160, 0],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "documentId": { "__rl": true, "value": "YOUR_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Subscribers", "mode": "name" },
+        "options": {}
+      },
+      "id": "node-read-subs",
+      "name": "Read WA Subscribers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [160, 180]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "YOUR_WA_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{ $json.phone }}",
+        "textBody": "={{ $('Pick Next Post').item.json.message }}",
+        "additionalFields": {}
+      },
+      "id": "node-wa-broadcast",
+      "name": "WhatsApp Broadcast (loop)",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [400, 180],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "YOUR_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Content", "mode": "name" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": ["id"]
+        },
+        "options": {}
+      },
+      "id": "node-mark-sent",
+      "name": "Mark Post Sent",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [440, -80]
+    }
+  ],
+  "connections": {
+    "Mon/Wed/Fri 18:00": { "main": [[{ "node": "Read Content Calendar", "type": "main", "index": 0 }]] },
+    "Read Content Calendar": { "main": [[{ "node": "Pick Next Post", "type": "main", "index": 0 }]] },
+    "Pick Next Post": { "main": [[{ "node": "Post to Telegram Channel", "type": "main", "index": 0 }, { "node": "Email Blast", "type": "main", "index": 0 }, { "node": "Read WA Subscribers", "type": "main", "index": 0 }]] },
+    "Post to Telegram Channel": { "main": [[{ "node": "Mark Post Sent", "type": "main", "index": 0 }]] },
+    "Read WA Subscribers": { "main": [[{ "node": "WhatsApp Broadcast (loop)", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "tags": [{ "name": "manpharma" }]
+}
