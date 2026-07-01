@@ -106,7 +106,11 @@ var SITE_CONFIG = {
   regularLink     : "https://ramannaiknaware.graphy.com/courses/DPharm-1st-year-Pharmaceutics-Complete-Notes-69883bcbc8266f1243b25fed",
   earlyBirdSeats  : 30,
   earlyBirdPrice  : 69,
-  regularPrice    : 99
+  regularPrice    : 99,
+  /* n8n lead-capture webhook. Leave "" to just send users to the free sample.
+     Set to e.g. "https://your-n8n-domain/webhook/lead" to capture leads + auto follow-up. */
+  leadWebhook     : "",
+  sampleLink      : "https://drive.google.com/file/d/1rHrKPCAWHzfMvzjK2drLs-l34tzHswcT/view?usp=sharing"
 };
 </script>
 
@@ -1117,6 +1121,66 @@ var SITE_CONFIG = {
     </div>
   </div>
 </section>
+
+<!-- ============================================================
+     LEAD CAPTURE — free sample + early-bird alert (feeds n8n)
+============================================================ -->
+<section id="lead-capture" class="py-14 px-4 bg-blue-50">
+  <div class="max-w-md mx-auto bg-white rounded-3xl shadow-xl border border-blue-100 p-7 text-center">
+    <div class="text-3xl mb-2">📥</div>
+    <h2 class="text-2xl font-extrabold text-gray-900">Free Sample chahiye?</h2>
+    <p class="text-gray-500 text-sm mt-2 mb-5">Naam aur WhatsApp/Email daalo — abhi free sample milega aur ₹69 early-bird offer ka alert bhi.</p>
+    <form id="lead-form" class="space-y-3 text-left">
+      <input id="lead-name" name="name" type="text" required placeholder="Tumhara naam"
+        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <input id="lead-contact" name="contact" type="text" required placeholder="WhatsApp number ya Email"
+        class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <button type="submit" id="lead-submit"
+        class="w-full gradient-cta text-white font-black text-base px-6 py-3.5 rounded-xl shadow-lg hover:opacity-90 transition-all transform hover:scale-105">
+        🎁 Get Free Sample
+      </button>
+      <p id="lead-msg" class="text-center text-sm font-semibold hidden"></p>
+    </form>
+    <p class="text-gray-400 text-xs mt-3">No spam. Sirf notes updates aur offers.</p>
+  </div>
+</section>
+<script>
+(function () {
+  var form = document.getElementById('lead-form');
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('lead-submit');
+    var msg = document.getElementById('lead-msg');
+    var name = document.getElementById('lead-name').value.trim();
+    var contact = document.getElementById('lead-contact').value.trim();
+    var channel = contact.indexOf('@') > -1 ? 'email' : 'whatsapp';
+    var sample = (SITE_CONFIG && SITE_CONFIG.sampleLink) || '#';
+    var hook = SITE_CONFIG && SITE_CONFIG.leadWebhook;
+
+    function done() {
+      msg.textContent = '✅ Sample khul raha hai... check karo!';
+      msg.classList.remove('hidden', 'text-red-600');
+      msg.classList.add('text-green-600');
+      btn.disabled = true;
+      window.open(sample, '_blank', 'noopener');
+    }
+
+    if (!hook) { done(); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Bhej rahe hain...';
+    fetch(hook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, contact: contact, channel: channel, subject_interest: 'Pharmaceutics', source: 'landing_page' })
+    }).then(done).catch(function () {
+      // even if the webhook fails, still give the student their sample
+      done();
+    }).finally(function () { btn.textContent = '🎁 Get Free Sample'; });
+  });
+})();
+</script>
 
 <!-- ============================================================
      FINAL CTA

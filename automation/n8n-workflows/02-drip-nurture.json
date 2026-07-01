@@ -1,0 +1,185 @@
+{
+  "name": "ManPharma 02 - Drip Nurture",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "hours", "triggerAtHour": 10 }] }
+      },
+      "id": "node-schedule",
+      "name": "Daily 10:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-560, 0]
+    },
+    {
+      "parameters": {
+        "documentId": { "__rl": true, "value": "YOUR_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Leads", "mode": "name" },
+        "options": {}
+      },
+      "id": "node-read",
+      "name": "Read Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Keep only leads that are due today and still in the funnel, then build the next message.\nconst today = new Date().toISOString().slice(0, 10);\nconst CHECKOUT = 'https://ramannaiknaware.graphy.com/courses/DPharm-1st-year-Pharmaceutics-Complete-Notes-69883bcbc8266f1243b25fed';\nconst COMBO = 'https://ramannaiknaware.graphy.com/courses/DPharm-1st-Year-Combo-1777537319930-69f311273e897b00ec94531a';\nconst SAMPLE = 'https://drive.google.com/file/d/1rHrKPCAWHzfMvzjK2drLs-l34tzHswcT/view?usp=sharing';\n\n// stage -> { text, daysToNext } ; stage 0 welcome already sent at capture, so start at 1.\nfunction msgFor(stage, name) {\n  const n = name || 'Student';\n  switch (Number(stage)) {\n    case 1: return { text: `${n}, ek quick tip 📚\\nPharmaceutics me Dosage Forms, Sterile Formulations aur Packaging har exam me aate hain. Hamari notes me ready answers + diagrams hain.\\nSample: ${SAMPLE}`, days: 1 };\n    case 2: return { text: `${n}, 500+ students in notes se padh rahe hain ⭐ \\\"Score 20 marks badh gaya\\\" — common feedback.\\n🔥 Early-bird ₹69 (first 30 students), phir ₹99.\\nLock karo 👉 ${CHECKOUT}`, days: 2 };\n    case 3: return { text: `${n}, notes lene chahiye? ✅ MSBTE ER20 chapters ✅ Diagrams+Hinglish ✅ Lifetime access ✅ Sirf ₹69.\\nSecure payment 👉 ${CHECKOUT}`, days: 2 };\n    case 4: return { text: `⏳ ${n}, last reminder! Early-bird ₹69 khatam hone wala hai, phir ₹99.\\nCombo me zyada bachat 👉 ${COMBO}\\nSingle 👉 ${CHECKOUT}`, days: 0 };\n    default: return null; // stage >= 5 -> done\n  }\n}\n\nconst out = [];\nfor (const item of $input.all()) {\n  const r = item.json;\n  const status = String(r.status || '').toLowerCase();\n  if (!(status === 'new' || status === 'nurturing')) continue;\n  if (r.next_action_at && String(r.next_action_at) > today) continue;\n  const nextStage = Number(r.stage || 0) + 1;\n  const m = msgFor(nextStage, r.name);\n  if (!m) {\n    // funnel finished -> mark Lost (no buy) and stop\n    out.push({ json: { ...r, _send: false, status: 'Lost', stage: nextStage, last_message_at: today, next_action_at: '', message: '' } });\n    continue;\n  }\n  const next = m.days > 0 ? new Date(Date.now() + m.days * 86400000).toISOString().slice(0, 10) : '';\n  out.push({ json: { ...r, _send: true, message: m.text, status: 'Nurturing', stage: nextStage, last_message_at: today, next_action_at: next } });\n}\nreturn out;"
+      },
+      "id": "node-pick",
+      "name": "Filter Due + Pick Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-120, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "typeValidation": "loose" },
+          "conditions": [
+            { "leftValue": "={{ $json._send }}", "rightValue": true, "operator": { "type": "boolean", "operation": "true", "singleValue": true } }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-if-send",
+      "name": "Has Message To Send?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [120, 0]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            { "conditions": { "options": { "caseSensitive": false, "typeValidation": "loose" }, "conditions": [ { "leftValue": "={{ $json.channel }}", "rightValue": "telegram", "operator": { "type": "string", "operation": "equals" } } ], "combinator": "and" }, "outputKey": "telegram" },
+            { "conditions": { "options": { "caseSensitive": false, "typeValidation": "loose" }, "conditions": [ { "leftValue": "={{ $json.channel }}", "rightValue": "whatsapp", "operator": { "type": "string", "operation": "equals" } } ], "combinator": "and" }, "outputKey": "whatsapp" },
+            { "conditions": { "options": { "caseSensitive": false, "typeValidation": "loose" }, "conditions": [ { "leftValue": "={{ $json.channel }}", "rightValue": "email", "operator": { "type": "string", "operation": "equals" } } ], "combinator": "and" }, "outputKey": "email" },
+            { "conditions": { "options": { "caseSensitive": false, "typeValidation": "loose" }, "conditions": [ { "leftValue": "={{ $json.channel }}", "rightValue": "instagram", "operator": { "type": "string", "operation": "equals" } } ], "combinator": "and" }, "outputKey": "instagram" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-switch-channel",
+      "name": "Route By Channel",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [340, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.contact }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "id": "node-send-telegram",
+      "name": "Send Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [600, -180],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "YOUR_WA_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{ $json.contact }}",
+        "textBody": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "id": "node-send-whatsapp",
+      "name": "Send WhatsApp",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [600, -40],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "fromEmail": "ManPharma Tutorials <YOUR_EMAIL>",
+        "toEmail": "={{ $json.contact }}",
+        "subject": "ManPharma — D.Pharm notes update 📚",
+        "emailFormat": "text",
+        "text": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "node-send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [600, 120],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/YOUR_IG_BUSINESS_ID/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": { \"id\": \"{{ $json.contact }}\" },\n  \"message\": { \"text\": \"{{ $json.message }}\" }\n}",
+        "options": {}
+      },
+      "id": "node-send-instagram",
+      "name": "Send Instagram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [600, 280],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "YOUR_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Leads", "mode": "name" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": ["lead_id"]
+        },
+        "options": {}
+      },
+      "id": "node-update",
+      "name": "Update Lead Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [900, 60]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "YOUR_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Leads", "mode": "name" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": ["lead_id"]
+        },
+        "options": {}
+      },
+      "id": "node-update-lost",
+      "name": "Mark Lost (no buy)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [340, 220]
+    }
+  ],
+  "connections": {
+    "Daily 10:00": { "main": [[{ "node": "Read Leads", "type": "main", "index": 0 }]] },
+    "Read Leads": { "main": [[{ "node": "Filter Due + Pick Message", "type": "main", "index": 0 }]] },
+    "Filter Due + Pick Message": { "main": [[{ "node": "Has Message To Send?", "type": "main", "index": 0 }]] },
+    "Has Message To Send?": { "main": [[{ "node": "Route By Channel", "type": "main", "index": 0 }], [{ "node": "Mark Lost (no buy)", "type": "main", "index": 0 }]] },
+    "Route By Channel": { "main": [[{ "node": "Send Telegram", "type": "main", "index": 0 }], [{ "node": "Send WhatsApp", "type": "main", "index": 0 }], [{ "node": "Send Email", "type": "main", "index": 0 }], [{ "node": "Send Instagram", "type": "main", "index": 0 }]] },
+    "Send Telegram": { "main": [[{ "node": "Update Lead Row", "type": "main", "index": 0 }]] },
+    "Send WhatsApp": { "main": [[{ "node": "Update Lead Row", "type": "main", "index": 0 }]] },
+    "Send Email": { "main": [[{ "node": "Update Lead Row", "type": "main", "index": 0 }]] },
+    "Send Instagram": { "main": [[{ "node": "Update Lead Row", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "tags": [{ "name": "manpharma" }]
+}

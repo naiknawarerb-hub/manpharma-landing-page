@@ -1,0 +1,155 @@
+{
+  "name": "ManPharma 04 - Conversion & Upsell",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "purchase",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-purchase",
+      "name": "Purchase Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-560, 0],
+      "webhookId": "manpharma-purchase"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Accept a purchase event from Graphy webhook OR a manual mark-paid form.\nconst b = $json.body || $json;\nconst contact = String(b.contact || b.phone || b.whatsapp || b.email || b.chat_id || '');\nconst channel = (b.channel || (b.email ? 'email' : 'whatsapp')).toLowerCase();\nreturn [{ json: {\n  contact,\n  channel,\n  name: b.name || 'Student',\n  amount: b.amount || '69',\n  product: b.product || 'Pharmaceutics Notes',\n  status: 'Customer',\n  stage: 5,\n  last_message_at: new Date().toISOString().slice(0, 10),\n  next_action_at: ''\n} }];"
+      },
+      "id": "node-normalize",
+      "name": "Normalize Purchase",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-340, 0]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "YOUR_SHEET_ID", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Leads", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contact": "={{ $json.contact }}",
+            "status": "Customer",
+            "stage": "5",
+            "last_message_at": "={{ $json.last_message_at }}",
+            "next_action_at": "",
+            "notes": "Paid - upsell sent"
+          },
+          "matchingColumns": ["contact"]
+        },
+        "options": {}
+      },
+      "id": "node-update",
+      "name": "Mark Customer (stops drip)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [-120, 0],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            { "conditions": { "options": { "caseSensitive": false, "typeValidation": "loose" }, "conditions": [ { "leftValue": "={{ $('Normalize Purchase').item.json.channel }}", "rightValue": "telegram", "operator": { "type": "string", "operation": "equals" } } ], "combinator": "and" }, "outputKey": "telegram" },
+            { "conditions": { "options": { "caseSensitive": false, "typeValidation": "loose" }, "conditions": [ { "leftValue": "={{ $('Normalize Purchase').item.json.channel }}", "rightValue": "whatsapp", "operator": { "type": "string", "operation": "equals" } } ], "combinator": "and" }, "outputKey": "whatsapp" },
+            { "conditions": { "options": { "caseSensitive": false, "typeValidation": "loose" }, "conditions": [ { "leftValue": "={{ $('Normalize Purchase').item.json.channel }}", "rightValue": "email", "operator": { "type": "string", "operation": "equals" } } ], "combinator": "and" }, "outputKey": "email" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-switch-channel",
+      "name": "Route By Channel",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [120, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Normalize Purchase').item.json.contact }}",
+        "text": "🎉 Thank you {{ $('Normalize Purchase').item.json.name }}! Payment mil gayi — notes ab account me available hain.\n\n📈 Ek aur subject? Combo me bachat 👉 https://ramannaiknaware.graphy.com/courses/DPharm-1st-Year-Combo-1777537319930-69f311273e897b00ec94531a\n\n🎁 Doston ko refer karo: https://ramannaiknaware.graphy.com/courses/DPharm-1st-year-Pharmaceutics-Complete-Notes-69883bcbc8266f1243b25fed\n\nAll the best! 💪",
+        "additionalFields": {}
+      },
+      "id": "node-ty-telegram",
+      "name": "Thank You - Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [360, -160],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "YOUR_WA_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{ $('Normalize Purchase').item.json.contact }}",
+        "textBody": "🎉 Thank you {{ $('Normalize Purchase').item.json.name }}! Payment mil gayi. 📈 Combo me bachat: https://ramannaiknaware.graphy.com/courses/DPharm-1st-Year-Combo-1777537319930-69f311273e897b00ec94531a 🎁 Refer karo: https://ramannaiknaware.graphy.com/courses/DPharm-1st-year-Pharmaceutics-Complete-Notes-69883bcbc8266f1243b25fed",
+        "additionalFields": {}
+      },
+      "id": "node-ty-whatsapp",
+      "name": "Thank You - WhatsApp",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [360, 0],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "fromEmail": "ManPharma Tutorials <YOUR_EMAIL>",
+        "toEmail": "={{ $('Normalize Purchase').item.json.contact }}",
+        "subject": "🎉 Thank you! Your ManPharma notes are ready",
+        "emailFormat": "text",
+        "text": "Thank you {{ $('Normalize Purchase').item.json.name }}!\n\nPayment received — your notes are now in your account.\n\nAdd another subject (combo discount): https://ramannaiknaware.graphy.com/courses/DPharm-1st-Year-Combo-1777537319930-69f311273e897b00ec94531a\n\nRefer a friend: https://ramannaiknaware.graphy.com/courses/DPharm-1st-year-Pharmaceutics-Complete-Notes-69883bcbc8266f1243b25fed\n\nAll the best for your exams!\n— ManPharma Tutorials",
+        "options": {}
+      },
+      "id": "node-ty-email",
+      "name": "Thank You - Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [360, 160],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_ADMIN_TELEGRAM_CHAT_ID",
+        "text": "🟢 NEW SALE!\nName: {{ $('Normalize Purchase').item.json.name }}\nChannel: {{ $('Normalize Purchase').item.json.channel }}\nContact: {{ $('Normalize Purchase').item.json.contact }}\nProduct: {{ $('Normalize Purchase').item.json.product }}\nAmount: ₹{{ $('Normalize Purchase').item.json.amount }}",
+        "additionalFields": {}
+      },
+      "id": "node-owner-alert",
+      "name": "Owner Sale Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [640, 0],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"ok\": true }",
+        "options": {}
+      },
+      "id": "node-respond",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 0]
+    }
+  ],
+  "connections": {
+    "Purchase Webhook": { "main": [[{ "node": "Normalize Purchase", "type": "main", "index": 0 }]] },
+    "Normalize Purchase": { "main": [[{ "node": "Mark Customer (stops drip)", "type": "main", "index": 0 }]] },
+    "Mark Customer (stops drip)": { "main": [[{ "node": "Route By Channel", "type": "main", "index": 0 }]] },
+    "Route By Channel": { "main": [[{ "node": "Thank You - Telegram", "type": "main", "index": 0 }], [{ "node": "Thank You - WhatsApp", "type": "main", "index": 0 }], [{ "node": "Thank You - Email", "type": "main", "index": 0 }]] },
+    "Thank You - Telegram": { "main": [[{ "node": "Owner Sale Alert", "type": "main", "index": 0 }]] },
+    "Thank You - WhatsApp": { "main": [[{ "node": "Owner Sale Alert", "type": "main", "index": 0 }]] },
+    "Thank You - Email": { "main": [[{ "node": "Owner Sale Alert", "type": "main", "index": 0 }]] },
+    "Owner Sale Alert": { "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "tags": [{ "name": "manpharma" }]
+}
