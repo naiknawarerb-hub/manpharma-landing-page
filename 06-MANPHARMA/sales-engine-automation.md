@@ -150,13 +150,19 @@ Website / DM ─► 🧲 captureLead_ ─► CRM (New) + welcome
 - ✅ Web app deploy kiya (Execute as: Me, Access: Anyone) → `/exec` URL mila.
 - ✅ Telegram webhook set (browser method: `.../setWebhook?url=<exec>?action=telegram`) → `"Webhook was set"`. **Bot reply kar raha hai = webhook working.** 🎉
 
-### 🐞 Open Issue (debugging)
-- **Problem:** bot ko `price` (aur baaki keywords) bhejne pe hamesha **default menu** aata hai, sahi keyword reply nahi.
-- **Analysis:** `MESSAGES` + `replyForText_` intact hain (menu unhi se aata hai), to ya text code tak sahi nahi pahunch raha, ya **live webhook stale (purana) deployment chala raha hai**.
-- **Diagnostic diya:** `testPriceReply()` function editor me run karke check karna — pricing aaya to logic sahi, phir **Deploy → Manage deployments → Edit → Version: "New version" → Deploy** (same URL update). Menu aaya to code fix karna.
-- **Waiting on:** user ka `testPriceReply` log result.
+### 🐞 Issue → ✅ RESOLVED (2026-07-01)
+- **Problem tha:** bot `price` pe har baar **menu** bhejta tha, aur multiple times.
+- **Root cause:** live webhook **stale deployment** (pehli truncated paste) chala raha tha; wo error karta tha → Telegram retry → menu bar-bar.
+- **Confirm kiya:** `testPriceReply()` ne sahi pricing diya → code perfect, sirf deploy purana tha.
+- **Fix:** code re-paste (full) → **Deploy → New version (Version 3)** → `deleteWebhook?drop_pending_updates=true` (queue clear) → naye `/exec` URL pe `setWebhook`. ✅
+- **Result:** 🎉 **Bot fully live!** `price`/`sample`/`syllabus`/`buy` sab sahi reply de rahe hain + Leads sheet me row ban rahi hai.
 
-- **Next up:** keyword-reply issue fix → landing page `leadWebhook` URL set → purchase webhook (Graphy) → WhatsApp/IG tokens (optional).
+### 🟢 Live Status
+- ✅ Telegram: Responder (auto-reply) + SDR (lead capture) LIVE
+- ✅ Triggers active: drip 10:00, broadcast 18:00 (Mon/Wed/Fri), report 21:00
+- Web app Version 3 deployed.
+
+- **Next up:** landing page `leadWebhook` URL set (website leads) → Content tab me broadcast posts daalna → purchase webhook (Graphy sale tracking) → WhatsApp/IG tokens (optional).
 
 ---
 *Auto-maintained by Claude. Har naye kaam pe "Progress Log" update hota rahega.*
