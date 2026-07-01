@@ -140,7 +140,8 @@ Website / DM ─► 🧲 captureLead_ ─► CRM (New) + welcome
 - **2026-06-30** — Obsidian summary note banaya (`automation/Manpharma marketing automation.md`).
 - **2026-07-01** — ✅ **Google Apps Script sales engine banaya** (complete sales team: SDR/Responder/Closer/Account Manager/Sales Manager). Apps Script ko n8n se prefer kiya (free, no server). Files: `automation/apps-script/` (7 files + README).
 - **2026-07-01** — Ye progress note (`06-MANPHARMA/sales-engine-automation.md`) banaya aur vault path confirm kiya.
-- **Next up (jab bolo):** live deploy + test, WhatsApp/IG tokens jodna, `leadWebhook` URL set karna, real broadcast content add karna.
+- **2026-07-01** — Sheet ID mila: `1uSM-F45u2pYISVAyCn_XdpohVBvJKAfRwLfSyUHLo1g`. "Extensions → Apps Script open nahi ho raha" issue ke liye **ALL-IN-ONE single-file script** banaya (`automation/apps-script/ALL-IN-ONE.gs`) — Sheet ID already bhara hua, standalone project me paste karo. Syntax verified ✅.
+- **Next up (jab bolo):** standalone project me paste → `initSalesEngine` run → Telegram bot token daalna → web app deploy → `leadWebhook` URL set karna.
 
 ---
 *Auto-maintained by Claude. Har naye kaam pe "Progress Log" update hota rahega.*
