@@ -141,7 +141,22 @@ Website / DM ─► 🧲 captureLead_ ─► CRM (New) + welcome
 - **2026-07-01** — ✅ **Google Apps Script sales engine banaya** (complete sales team: SDR/Responder/Closer/Account Manager/Sales Manager). Apps Script ko n8n se prefer kiya (free, no server). Files: `automation/apps-script/` (7 files + README).
 - **2026-07-01** — Ye progress note (`06-MANPHARMA/sales-engine-automation.md`) banaya aur vault path confirm kiya.
 - **2026-07-01** — Sheet ID mila: `1uSM-F45u2pYISVAyCn_XdpohVBvJKAfRwLfSyUHLo1g`. "Extensions → Apps Script open nahi ho raha" issue ke liye **ALL-IN-ONE single-file script** banaya (`automation/apps-script/ALL-IN-ONE.gs`) — Sheet ID already bhara hua, standalone project me paste karo. Syntax verified ✅.
-- **Next up (jab bolo):** standalone project me paste → `initSalesEngine` run → Telegram bot token daalna → web app deploy → `leadWebhook` URL set karna.
+
+### 🚧 Live Deployment Progress (2026-07-01)
+- ✅ Standalone Apps Script project banaya: **"ManPharma Sales Engine"** (Code.gs me ALL-IN-ONE paste).
+- ✅ `initSalesEngine` run hua — Sheet me **Leads / Content / Subscribers** tabs bane + daily triggers set (drip 10:00, broadcast 18:00 Mon/Wed/Fri, report 21:00).
+- ✅ Telegram bot banaya (@BotFather), token + admin chat id nikaale.
+- ✅ Script Properties me `TELEGRAM_BOT_TOKEN` + `ADMIN_TELEGRAM_CHAT_ID` daale.
+- ✅ Web app deploy kiya (Execute as: Me, Access: Anyone) → `/exec` URL mila.
+- ✅ Telegram webhook set (browser method: `.../setWebhook?url=<exec>?action=telegram`) → `"Webhook was set"`. **Bot reply kar raha hai = webhook working.** 🎉
+
+### 🐞 Open Issue (debugging)
+- **Problem:** bot ko `price` (aur baaki keywords) bhejne pe hamesha **default menu** aata hai, sahi keyword reply nahi.
+- **Analysis:** `MESSAGES` + `replyForText_` intact hain (menu unhi se aata hai), to ya text code tak sahi nahi pahunch raha, ya **live webhook stale (purana) deployment chala raha hai**.
+- **Diagnostic diya:** `testPriceReply()` function editor me run karke check karna — pricing aaya to logic sahi, phir **Deploy → Manage deployments → Edit → Version: "New version" → Deploy** (same URL update). Menu aaya to code fix karna.
+- **Waiting on:** user ka `testPriceReply` log result.
+
+- **Next up:** keyword-reply issue fix → landing page `leadWebhook` URL set → purchase webhook (Graphy) → WhatsApp/IG tokens (optional).
 
 ---
 *Auto-maintained by Claude. Har naye kaam pe "Progress Log" update hota rahega.*
