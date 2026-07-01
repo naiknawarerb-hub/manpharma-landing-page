@@ -160,9 +160,39 @@ Website / DM ─► 🧲 captureLead_ ─► CRM (New) + welcome
 ### 🟢 Live Status
 - ✅ Telegram: Responder (auto-reply) + SDR (lead capture) LIVE
 - ✅ Triggers active: drip 10:00, broadcast 18:00 (Mon/Wed/Fri), report 21:00
-- Web app Version 3 deployed.
+- Web app **Version 3** deployed.
+- Web app URL: `https://script.google.com/macros/s/AKfycbzLh-Po9aWVQko2CwaWLsMxs90yMIMCEdGju5qVnX4YAksOaqISx5US0HeAnwOIuM1m/exec`
 
-- **Next up:** landing page `leadWebhook` URL set (website leads) → Content tab me broadcast posts daalna → purchase webhook (Graphy sale tracking) → WhatsApp/IG tokens (optional).
+---
+
+## 🔜 NEXT SESSION TODO (naye chat me yahan se continue)
+
+### 🐞 BUG 1 — Duplicate replies (HIGH priority)
+- **Symptom:** ek `price` bhejne pe bot **5-6 baar** wahi reply bhej deta hai.
+- **Root cause:** Apps Script `doPost` slow hai (multiple full-sheet reads via `readLeads_`/`findLeadByContact_` + UrlFetch sends). Telegram ko time pe 200 OK nahi milta → **same `update_id` retry** karta hai → duplicate replies. (New-user path me `captureLead_` ek extra welcome bhi bhejta hai.)
+- **Fix plan (code change in `ALL-IN-ONE.gs` → re-paste → new version deploy):**
+  1. `doPost` me sabse pehle **`update_id` dedup** — `CacheService.getScriptCache()` me update_id store karo (put 300s); agar already seen → turant `json_({ok:true})` return, koi processing nahi.
+  2. `handleInbound_` me se **duplicate work hatao**: `findLeadByContact_` ek hi baar call ho; inbound reply ke case me `captureLead_` ka welcome-send skip karo (sirf sheet me add karo).
+  3. Optional: sheet read optimize (ek hi `readLeads_`).
+- **Temporary option agar spam abhi rokna ho:** `deleteWebhook` call karke bot pause kar sakte hain.
+
+### 🔗 CHANGE 1 — Website link (course link ki jagah)
+- User chahta hai messages me **poori website ka link** ho (sirf Pharmaceutics course link nahi), taaki puri website dikhe.
+- **BLOCKER:** website ka **live URL chahiye** (GitHub Pages `https://<user>.github.io/manpharma-landing-page/` ya custom domain?) — user se next chat me lena hai.
+- **Kaam:** `getConfig()` me `WEBSITE` add karo; `MESSAGES()` me primary CTA `CHECKOUT` ki jagah `WEBSITE` use karo (ya dono).
+
+### 🧭 CHANGE 2 — Menu / conversation flow redesign
+- Naya flow: lead aane pe → **"aapki kya problem/subject hai?" poochho** → uske jawab pe **relevant solution + link offer karo**.
+- Ye ek **guided/stateful flow** hai (lead ka current step Sheet me `stage`/`notes` me store karke). Design next chat me finalize karna — options: (a) numbered menu (1/2/3), (b) keyword based, (c) short Q&A.
+
+### 📋 Baaki pending (pehle se)
+- Landing page `leadWebhook` URL set (website form → leads).
+- Content tab me broadcast posts (`content-calendar.csv`) paste.
+- Purchase webhook (Graphy `?action=purchase`) → sale tracking + upsell.
+- WhatsApp / Instagram tokens (optional).
+
+> [!info] Naye chat ke liye quick context
+> Standalone Apps Script project "ManPharma Sales Engine", Code.gs = `automation/apps-script/ALL-IN-ONE.gs`. Sheet ID `1uSM-F45u2pYISVAyCn_XdpohVBvJKAfRwLfSyUHLo1g`. Telegram live (Version 3). Fixes ke baad hamesha: re-paste → **Deploy → Manage deployments → Edit → New version** → (zaroorat ho to) webhook reset with `drop_pending_updates=true`.
 
 ---
 *Auto-maintained by Claude. Har naye kaam pe "Progress Log" update hota rahega.*
