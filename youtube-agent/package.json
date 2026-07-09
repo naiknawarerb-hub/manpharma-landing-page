@@ -1,0 +1,31 @@
+{
+  "name": "youtube-ai-agent",
+  "version": "1.0.0",
+  "description": "A 24/7 YouTube AI content agent: strategy, viral hooks, scripts, SEO and thumbnail concepts powered by Anthropic Claude — with a dashboard, scheduler and SQLite persistence.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "youtube",
+    "ai",
+    "automation",
+    "anthropic",
+    "claude",
+    "content"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "better-sqlite3": "^11.7.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-cron": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

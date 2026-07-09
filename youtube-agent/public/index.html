@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YouTube AI Agent</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">▶</span>
+      <div>
+        <h1>YouTube AI Agent</h1>
+        <p id="channelLine" class="muted">loading…</p>
+      </div>
+    </div>
+    <div id="claudeBadge" class="badge">…</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="generate">Generate</button>
+    <button class="tab" data-tab="hooks">Viral Hooks</button>
+    <button class="tab" data-tab="library">Library</button>
+    <button class="tab" data-tab="activity">Activity</button>
+  </nav>
+
+  <main>
+    <!-- GENERATE -->
+    <section id="tab-generate" class="panel active">
+      <div class="card">
+        <h2>Full pipeline</h2>
+        <p class="muted">Strategy → hooks → script → SEO → thumbnails, in one click. Saved to your library.</p>
+        <div class="grid">
+          <label>Topic
+            <input id="genTopic" placeholder="e.g. Notion AI for solo founders" />
+          </label>
+          <label>Angle <span class="muted">(optional)</span>
+            <input id="genAngle" placeholder="the unexpected time-saver" />
+          </label>
+          <label>Format
+            <select id="genFormat">
+              <option value="explainer">Explainer</option>
+              <option value="tutorial">Tutorial</option>
+              <option value="listicle">Listicle</option>
+              <option value="story">Story</option>
+              <option value="case-study">Case study</option>
+              <option value="short">Short</option>
+            </select>
+          </label>
+          <label>Hook style
+            <select id="genHookCategory"></select>
+          </label>
+          <label>Length (min)
+            <input id="genLength" type="number" min="1" max="30" value="6" />
+          </label>
+        </div>
+        <div class="row">
+          <button id="genBtn" class="primary">Generate video plan</button>
+          <button id="ideasBtn" class="ghost">Suggest topics</button>
+        </div>
+        <div id="ideasOut" class="chips"></div>
+      </div>
+      <div id="genResult"></div>
+    </section>
+
+    <!-- HOOKS -->
+    <section id="tab-hooks" class="panel">
+      <div class="card">
+        <h2>Viral hook generator</h2>
+        <p class="muted">50 proven hook prompts across 10 categories, filled with your topic.</p>
+        <div class="grid">
+          <label>Topic
+            <input id="hookTopic" placeholder="e.g. cold email that gets replies" />
+          </label>
+          <label>Category
+            <select id="hookCategory"></select>
+          </label>
+        </div>
+        <div class="row">
+          <button id="hookBtn" class="primary">Generate hooks</button>
+          <button id="hookMixBtn" class="ghost">Mix all 10 styles</button>
+        </div>
+      </div>
+      <div id="hookResult"></div>
+    </section>
+
+    <!-- LIBRARY -->
+    <section id="tab-library" class="panel">
+      <div class="card">
+        <h2>Content library</h2>
+        <p class="muted">Everything the agent has produced. Click a row to expand.</p>
+        <button id="refreshLib" class="ghost">Refresh</button>
+      </div>
+      <div id="libraryList"></div>
+    </section>
+
+    <!-- ACTIVITY -->
+    <section id="tab-activity" class="panel">
+      <div class="card">
+        <h2>Agent activity</h2>
+        <p class="muted">Recent runs and the scheduler status.</p>
+        <div id="schedInfo" class="muted"></div>
+        <button id="refreshRuns" class="ghost">Refresh</button>
+      </div>
+      <div id="runsList"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
